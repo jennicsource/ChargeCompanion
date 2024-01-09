@@ -106,6 +106,7 @@ void loop() {
     else
     {
       if (Serial1.available() > 0) { 
+        
         FirstByte = Serial1.read();    
         if (FirstByte == '#') 
         {
@@ -151,7 +152,9 @@ void loop() {
       }
       else
       {
-          Serial1.println(strResponse);        
+          Serial1.println(strResponse); 
+          Serial.println(strResponse); 
+
       }
     }
 
