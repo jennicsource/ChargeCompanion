@@ -3,8 +3,13 @@
 
 #include <movingAvg.h>
 
-
 movingAvg mySensor(32);   // https://github.com/JChristensen/movingAvg
+
+#include <SparkFun_ADS1015_Arduino_Library.h> //Click here to get the library: http://librarymanager/All#SparkFun_ADS1015
+#include <Wire.h>
+
+ADS1015 adcSensor;
+
 
 #define PIN_USERLED        2
 #define PIN_ADC_CURRENT    A1
@@ -18,18 +23,34 @@ long intSumLimit = 64;
 void setup() {
   
   pinMode(PIN_USERLED, OUTPUT);
-  digitalWrite(PIN_USERLED, HIGH);
+  
 
   pinMode(PIN_SWITCH_SERIAL, INPUT_PULLUP);
  
 
   mySensor.begin();
 
+  Wire.begin();
+
   Serial.begin(9600);
 
-  Serial1.begin(9600);
+  //Serial1.begin(9600);
+
+
   
   
+  if (adcSensor.begin() == true)
+  {
+    Serial.println("Device found. I2C connections are good.");
+  }
+  else
+  {
+    Serial.println("Device not found. Check wiring.");
+    while (1); // stall out forever
+  }
+  
+  digitalWrite(PIN_USERLED, HIGH);
+
   intCurrentFactor = 3300000 / (1024 * intSumLimit);
 }
 
@@ -51,7 +72,12 @@ int SecondByte;
 
 void loop() {
   
-  int intCurrent = analogRead(PIN_ADC_CURRENT);
+  //int intCurrent = analogRead(PIN_ADC_CURRENT);
+
+  uint16_t intCurrent = adcSensor.getSingleEnded(3);
+
+  Serial.println(intCurrent);
+
 
   intCurrentSum = intCurrentSum + intCurrent;
  
@@ -63,7 +89,7 @@ void loop() {
     
     intCurrentAvg = mySensor.reading(intCurrentSum) * intCurrentFactor;   //  max 3300000 µA
 
-   
+    
     unsigned long intTime = millis();
 
     unsigned long intPeriod = intTime - intLastTime;   // about 66 [ms]
